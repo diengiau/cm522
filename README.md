@@ -31,7 +31,7 @@ I provide some small code files (in `.do` format) so that we can practice in cla
 
 -   `01_statistics of return.do`
 
--   `02_merge with factor data.do`
+-   `02_import and save factor data.do`
 
 -   `03_size and beta.do`
 

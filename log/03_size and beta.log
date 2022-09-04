@@ -1,0 +1,135 @@
+---------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  B:\_YZU\01_teaching\investment\code\cm522\log/03_size and beta.log
+  log type:  text
+ opened on:   4 Sep 2022, 17:10:00
+
+. 
+. * first, change pwd to class folder
+. use "data/Ret.dta" , clear
+
+. 
+. * merge with Size and Beta
+. merge 1:1 permno yyyymm using "data/Beta.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       275,011
+        from master                    52,885  (_merge==1)
+        from using                    222,126  (_merge==2)
+
+    matched                         4,781,622  (_merge==3)
+    -----------------------------------------
+
+. drop _merge
+
+. merge 1:1 permno yyyymm using "data/Size.dta"
+
+    Result                           # of obs.
+    -----------------------------------------
+    not matched                       222,126
+        from master                   222,126  (_merge==1)
+        from using                          0  (_merge==2)
+
+    matched                         4,834,507  (_merge==3)
+    -----------------------------------------
+
+. keep if _merge == 3
+(222,126 observations deleted)
+
+. drop _merge
+
+. 
+. * Set firm-time as panel data
+. ge year = year(date)
+
+. ge month = month(date)
+
+. destring year month, replace  
+year already numeric; no replace
+month already numeric; no replace
+
+. gen t = ym(year, month)
+
+. format t %tm
+
+. order t, after(yyyymm) 
+
+. xtset permno t
+       panel variable:  permno (unbalanced)
+        time variable:  t, 1925m12 to 2022m3
+                delta:  1 month
+
+. 
+. * summary statistics
+. su beta
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+        beta |  4,003,056    .9895417    .7401544  -17.86625   52.63996
+
+. su me
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+          me |  4,690,949     1706570    1.43e+07          0   2.90e+09
+
+. 
+. * create new var
+. ge log_me = log(me/1000)
+(146,316 missing values generated)
+
+. su log_me
+
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+      log_me |  4,688,191    4.611179    2.268105  -5.991465   14.88104
+
+. 
+. * a pooled OLS regression between ret and beta and size
+. reg ret beta log_me
+
+      Source |       SS           df       MS      Number of obs   = 3,981,783
+-------------+----------------------------------   F(2, 3981780)   =   4712.40
+       Model |  2637212.61         2   1318606.3   Prob > F        =    0.0000
+    Residual |  1.1142e+09 3,981,780  279.816192   R-squared       =    0.0024
+-------------+----------------------------------   Adj R-squared   =    0.0024
+       Total |  1.1168e+09 3,981,782  280.478371   Root MSE        =    16.728
+
+------------------------------------------------------------------------------
+         ret |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        beta |   .8141507   .0114018    71.41   0.000     .7918035    .8364979
+      log_me |   .2672549   .0036773    72.68   0.000     .2600475    .2744623
+       _cons |  -.8189246   .0232425   -35.23   0.000    -.8644791   -.7733701
+------------------------------------------------------------------------------
+
+. 
+. * Fama-Macbeth regression
+. search asreg
+
+. asreg ret beta log_me, fmb newey(6)
+
+Fama-MacBeth Two-Step procedure (Newey SE)       Number of obs     =   3981783
+(Newey-West adj. Std. Err. using lags(6))        Num. time periods =      1127
+                                                 F(  2,  1126)     =     70.15
+                                                 Prob > F          =    0.0000
+                                                 avg. R-squared    =    0.0776
+                                                 Adj. R-squared    =    0.0771
+------------------------------------------------------------------------------
+             |              Newey-FMB
+         ret |      Coef.   Std. Err.      t    P>|t|     [95% Conf. Interval]
+-------------+----------------------------------------------------------------
+        beta |   1.040499   .2640742     3.94   0.000     .5223663    1.558632
+      log_me |   .2902524   .0259838    11.17   0.000     .2392703    .3412345
+       _cons |  -.9913158   .1892776    -5.24   0.000    -1.362692   -.6199393
+------------------------------------------------------------------------------
+
+. 
+. * log close
+. log close
+      name:  <unnamed>
+       log:  B:\_YZU\01_teaching\investment\code\cm522\log/03_size and beta.log
+  log type:  text
+ closed on:   4 Sep 2022, 17:10:45
+---------------------------------------------------------------------------------------------------------
