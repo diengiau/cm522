@@ -35,6 +35,8 @@ reg ret beta log_me
 * Fama-Macbeth regression: if not installed: search asreg
 asreg ret beta log_me, fmb newey(6)
 
+* the coefficients seem wrong with our literature, do you know if we missed something?
+
 * save this data
 save "data/Main.dta"
 

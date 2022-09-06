@@ -14,6 +14,11 @@ su bm
 * Fama-Macbeth regression
 asreg ret beta log_me bm, fmb newey(6)
 
+* need to use lead return in month t+1
+sort permno t
+ge ret_f1 = f1.ret
+asreg ret_f1 beta log_me bm, fmb newey(6)
+
 * sorting
 astile g_bm = bm, nq(10) by(yyyymm)
 
