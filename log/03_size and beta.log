@@ -1,8 +1,8 @@
----------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
        log:  B:\_YZU\01_teaching\investment\code\cm522\log/03_size and beta.log
   log type:  text
- opened on:   4 Sep 2022, 17:10:00
+ opened on:  11 Oct 2022, 11:44:42
 
 . 
 . * first, change pwd to class folder
@@ -41,17 +41,18 @@
 
 . 
 . * Set firm-time as panel data
-. ge year = year(date)
+. * 1. a Long way:
+. * ge year = year(date)
+. * ge month = month(date)
+. * destring year month, replace  
+. * gen t = ym(year, month)
+. * format t %tm
+. * order t, after(yyyymm) 
+. * xtset permno t
+. * 2. a shorter way: use "mofd"
+. ge t = mofd(date) 
 
-. ge month = month(date)
-
-. destring year month, replace  
-year already numeric; no replace
-month already numeric; no replace
-
-. gen t = ym(year, month)
-
-. format t %tm
+. format t %tm 
 
 . order t, after(yyyymm) 
 
@@ -86,6 +87,7 @@ month already numeric; no replace
       log_me |  4,688,191    4.611179    2.268105  -5.991465   14.88104
 
 . 
+. * Method 1: FM regression
 . * a pooled OLS regression between ret and beta and size
 . reg ret beta log_me
 
@@ -105,9 +107,7 @@ month already numeric; no replace
 ------------------------------------------------------------------------------
 
 . 
-. * Fama-Macbeth regression
-. search asreg
-
+. * Fama-Macbeth regression: if not installed: search asreg
 . asreg ret beta log_me, fmb newey(6)
 
 Fama-MacBeth Two-Step procedure (Newey SE)       Number of obs     =   3981783
@@ -126,10 +126,64 @@ Fama-MacBeth Two-Step procedure (Newey SE)       Number of obs     =   3981783
 ------------------------------------------------------------------------------
 
 . 
+. * the coefficients seem wrong with our literature, do you know if we missed something?
+. 
+. * Method 2: Sorting portfolios based on size
+. * sorting
+. astile g_size = me, nq(10) by(yyyymm)
+
+. 
+. * statistics
+. tab g_size, su(me)
+
+         10 |
+  quantiles |            Summary of me
+      of me |        Mean   Std. Dev.       Freq.
+------------+------------------------------------
+          1 |   6359.1761   6320.9706     469,632
+          2 |   19827.188    17198.86     469,035
+          3 |   40273.915   35892.385     469,132
+          4 |   72427.874   66806.744     469,071
+          5 |   121860.06   115037.12     468,888
+          6 |   206861.26   202222.25     469,288
+          7 |   367120.69   374470.22     469,164
+          8 |   708513.07   756335.49     469,020
+          9 |     1643258   1850454.6     469,161
+         10 |    13894892    43182702     468,558
+------------+------------------------------------
+      Total |   1706569.8    14261594   4,690,949
+
+. 
+. * 10 portfolio returns over time
+. collapse (mean) ret, by(g_size yyyymm)
+
+. tab g_size, su(ret)
+
+         10 |
+  quantiles |        Summary of (mean) ret
+      of me |        Mean   Std. Dev.       Freq.
+------------+------------------------------------
+          1 |  -.68421446   9.6191269       1,155
+          2 |   .76391935   9.1261911       1,155
+          3 |   1.1793948   8.2529936       1,155
+          4 |   1.2837579   7.6941865       1,155
+          5 |   1.5084826   7.4882842       1,155
+          6 |   1.5854128   7.2155647       1,155
+          7 |   1.6529879   6.9671222       1,155
+          8 |   1.6698904   6.4579787       1,155
+          9 |   1.6446178   6.0858414       1,155
+         10 |   1.4901234   5.4568931       1,155
+------------+------------------------------------
+      Total |   1.2094372   7.5669256      11,550
+
+. 
+. * save this data
+. * save "data/Main.dta"
+. 
 . * log close
 . log close
       name:  <unnamed>
        log:  B:\_YZU\01_teaching\investment\code\cm522\log/03_size and beta.log
   log type:  text
- closed on:   4 Sep 2022, 17:10:45
----------------------------------------------------------------------------------------------------------
+ closed on:  11 Oct 2022, 11:45:43
+---------------------------------------------------------------------------------------------------------------
