@@ -30,6 +30,7 @@ I provide some small code files (in `.do` format) so that we can practice in cla
     -   `05_mom and calculate alpha.do`
 -   **R** code: with `.qmd` file type
     -   `01_Statistics of Returns.qmd`
+    -   `02_Merge with factors and run regressions.qmd`
 
 ## Data
 

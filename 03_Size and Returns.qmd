@@ -1,0 +1,38 @@
+---
+title: "01_Size and Returns"
+author: "Richard Bui"
+format: html
+editor: visual
+---
+
+## Step 1. Load libraries
+
+```{r}
+# before loading, you need to install each package with install.packages("NAME_OF_PACKAGE")
+library(tidyverse) # for MacOS: library(dplyr)
+library(haven)
+library(skimr)
+
+library(tidyfinance)
+```
+
+## Step 2. Import and merge data
+
+We import firm returns and then merge with the firm size.
+
+```{r}
+Ret = read_dta(file = "data/Ret.dta")
+Size = read_dta(file = "data/Size.dta")
+```
+
+**Questions:**
+
+> What are the matching columns of these two data?
+>
+> Please merge these two data and save as a new R object namely `Data`.
+
+## Step 3. Fama-Macbeth regression
+
+```{r}
+
+```
