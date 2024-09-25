@@ -1,0 +1,118 @@
+---
+title: "02_Merge with factors and run regressions"
+author: "Richard Bui"
+format: html
+editor: visual
+---
+
+## Step 1. Load libraries
+
+```{r}
+# before loading, you need to install each package with install.packages("NAME_OF_PACKAGE")
+library(tidyverse) # for MacOS: library(dplyr)
+library(haven)
+library(skimr)
+
+# for regression
+library(fixest)
+library(broom)
+```
+
+## Step 2. Import data
+
+Again, we import firm returns and market returns.
+
+```{r}
+Ret = read_dta(file = "data/Ret.dta")
+Mret = read_dta("data/Mret.dta")
+```
+
+## Step 3. Merge data
+
+To merge two data, we need to find the matching column that can link two data together. In our case, which columns can be used to merge two data?
+
+-   `permno`
+
+-   `date`
+
+-   `yyyymm`
+
+Then, to merge two data, we need to think how to link two data. In general, we have 4 merge algorithms:
+
+-   left_join
+
+-   right_join
+
+-   inner_join
+
+-   full_join
+
+```{r}
+# Data = JOIN_FUNCTION(Ret, Mret, by=("MATCHING_COLUMN"))
+```
+
+## Step 4. Run the regression to get the beta:
+
+To run regression in R, we often use the basic function like `lm` . Later, we can use a more sophisticated function like `fixest::feols` .
+
+Normally, to run beta regression, we only need data for one firm, which need to filter the data for one firm from `Ret` which includes every firm.
+
+```{r}
+OneFirm = Data %>% 
+  filter(permno == 10000)
+head(OneFirm)
+```
+
+**Run regression with `lm`**
+
+```{r}
+lm(formula = ret ~ mkt_rf, data = OneFirm)
+```
+
+Again, we can save the regression output to one R object to re-use later:
+
+```{r}
+m1 = lm(formula = ret ~ mkt_rf, data = OneFirm)
+m1
+```
+
+We can summarize the regression output:
+
+```{r}
+summary(m1)
+```
+
+This is what we learn from slide, and you can read two columns `Estimate` and `Pr` to know the sign and the significance of the coefficients.
+
+**Run regression with `feols`**
+
+```{r}
+m2 = feols(fml = ret ~ mkt_rf, data = OneFirm)
+m2
+```
+
+**Practice**
+
+> Can you run regression again, but now the formula will change a bit. In addition to market return, we add `smb` and `hml` to the formula?
+
+## Step 5. Work with the regression object with `broom`
+
+Sometimes, we want to clean the regression object or want to calculate something else, such as residuals from the regressions. In such cases, it is useful to use `broom` package with three useful functions:
+
+1.  `tidy`: get the coefficients in clean dataframe format
+
+```{r}
+tidy(m1)
+```
+
+2.  `glance`: to get other information from the regression such as R2 or the number of observations
+
+```{r}
+glance(m1)
+```
+
+3.  `augment`: to modify our data by adding more columns into the data. We often use `.fitted` for prediction and `.resid` for residuals to calculate some kinds of risks or adjusted factors in the empirical studies.
+
+```{r}
+augment(m1)
+```
