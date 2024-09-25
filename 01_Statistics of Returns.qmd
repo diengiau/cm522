@@ -1,0 +1,71 @@
+---
+title: "01_Statistics of Returns"
+author: "Richard Bui"
+format: html
+editor: visual
+---
+
+## Step 1. Load libraries
+
+```{r}
+# before loading, you need to install each package with install.packages("NAME_OF_PACKAGE")
+library(tidyverse) # for MacOS: library(dplyr)
+library(haven)
+library(skimr)
+```
+
+## Step 2. Load data
+
+Normally, we import data from a source file such as `csv` , Excel (`xls` ), Stata (`dta`), or SAS (`sas7bdat`). In R, we use corresponding command to load the data into R workspace.
+
+For example, we read `csv` with `read_csv`, read `dta` with `read_dta` (from `haven` package) as an R object with the name `Ret`. So, it looks like `Ret = read_dta("FILE_NAME")` as follows.
+
+```{r}
+Ret = read_dta(file = "data/Ret.dta")
+```
+
+Look at the `Environment` tab in RStudio to see the new object `Ret`. Click it to view it.
+
+**Practice**
+
+> Can you import market return data from `data/Mret.dta` ?
+
+## Step 3. Statistics of `Ret` data
+
+We will work as Q&A in this part.
+
+Q1. How many observations in data?
+
+```{r}
+dim(Ret) # dim = dimension
+```
+
+Q2. How many years of data?
+
+```{r}
+
+```
+
+Q3. How many firms in the data?
+
+```{r}
+
+```
+
+Q4. What is the mean and SD of returns over sample?
+
+```{r}
+
+```
+
+Q5. Calculate the mean of returns over year?
+
+```{r}
+
+```
+
+Q6. Draw a line plot of mean returns over year?
+
+```{r}
+
+```
