@@ -1,5 +1,5 @@
 ---
-title: "01_Size and Returns"
+title: "01_Size, Beta, and Returns"
 author: "Richard Bui"
 format: html
 editor: visual
@@ -13,7 +13,8 @@ library(tidyverse) # for MacOS: library(dplyr)
 library(haven)
 library(skimr)
 
-library(tidyfinance)
+# for regression
+library(plm)
 ```
 
 ## Step 2. Import and merge data
@@ -23,6 +24,7 @@ We import firm returns and then merge with the firm size.
 ```{r}
 Ret = read_dta(file = "data/Ret.dta")
 Size = read_dta(file = "data/Size.dta")
+Beta = read_dta(file = "data/Beta.dta")
 ```
 
 **Questions:**
@@ -31,8 +33,128 @@ Size = read_dta(file = "data/Size.dta")
 >
 > Please merge these two data and save as a new R object namely `Data`.
 
-## Step 3. Fama-Macbeth regression
+```{r}
+Data = Ret %>% 
+  inner_join(Size, by=c("permno", "yyyymm")) %>% 
+  inner_join(Beta, by=c("permno", "yyyymm"))
+```
+
+Next, create the new variable `size` which equals to log of `me`.
 
 ```{r}
-
+Data = Data %>% 
+  mutate(size = ifelse(me>0, log(me), NA))
 ```
+
+Check statistics of the data:
+
+```{r}
+skim(Data)
+```
+
+## Step 3. Two methods to find a relation between a variable and stock returns
+
+### Method 1: Fama-Macbeth regression
+
+```{r}
+m1 = pmg(ret ~ size + beta, data = Data,
+         index=c("date", "permno"),model = "mg")
+
+summary(m1)
+```
+
+We find some significant results:
+
+-   We find a positive relation between firm size and stock returns, which is different from what we learned in Banz (1981)! This finding seems wrong with our literature, do you know if we missed something?
+
+-   There is a positive relation between beta and stock returns, which supports for CAPM theory.
+
+**How to use lag of size and beta?**
+
+```{r}
+Data2 = Data %>% 
+  group_by(permno) %>% 
+  arrange(permno, yyyymm) %>% 
+  mutate(size_l1 = lag(size),
+         beta_l1 = lag(beta)) %>% 
+  ungroup() %>% 
+  na.omit()
+```
+
+Then, re-run the model with the lagged variables:
+
+```{r}
+m2 = pmg(ret ~ size_l1 + beta_l1, data = Data2,
+         index=c("date", "permno"),model = "mg")
+
+summary(m2)
+```
+
+Now, we have consistent results with what we learned in the literature:
+
+-   Size effect: small firms have higher returns
+
+-   Beta: no beta effect, i.e., no significant relation between beta and stock returns
+
+### Method 2: Sorting portfolios
+
+We can group the firms into 10 groups based on firm size as follows:
+
+```{r}
+Data2 %>% 
+  mutate(g_size = ntile(size_l1, n=10), 
+         .by = date) %>%
+  summarize(average_size = mean(size_l1, na.rm=TRUE), 
+            .by = c(g_size)) %>% 
+  arrange(g_size)
+```
+
+**For equal-weighted returns**, we use `mean` function:
+
+```{r}
+PortfolioReturn = Data2 %>% 
+  mutate(g_size = ntile(size_l1, n=10), 
+         .by = date) %>%
+  summarize(p_ret = mean(ret, na.rm=TRUE), 
+            .by = c(date, g_size)) 
+```
+
+Then, we have the time series of returns for 10 portfolios:
+
+```{r}
+PortfolioReturn
+```
+
+Count the observation per portfolio:
+
+```{r}
+PortfolioReturn %>% count(g_size)
+```
+
+Then, we take average returns per portfolio:
+
+```{r}
+PortfolioReturn %>% 
+  summarize(p_ret = mean(p_ret, na.rm=TRUE), 
+            .by = c(g_size)) %>% 
+  arrange(g_size)
+```
+
+**For value-weighted returns**, we use `weighted.mean` function:
+
+We can do the same thing, but just replace the function to calculate the mean of portfolio return `p_ret`:
+
+```{r}
+Data2 %>% 
+  mutate(g_size = ntile(size_l1, n=10), 
+         .by = date) %>%
+  summarize(p_ret = weighted.mean(ret, w=size_l1, na.rm=TRUE), 
+            .by = c(date, g_size)) %>% 
+  summarize(p_ret = mean(p_ret, na.rm=TRUE), 
+            .by = c(g_size)) %>% 
+  arrange(g_size)
+```
+
+## Exercise
+
+We have another data is B/M ratio (which is book-to-market ratio) in the file `Bm.dta` in the `data` folder. Please import that data to our session and test if `bm` variable can predict the stock returns. Note that we need to transform that variable into its log form such as `log_bm = log(bm)`.
