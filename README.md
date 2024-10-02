@@ -1,6 +1,8 @@
 # cm522
 
-YZU CM522 Investment course Contact: please email me if you find any problem.
+YZU CM522 Investment course for master students.
+
+Contact: please email me if you find any problem.
 
 I will provide all related codes in this repository. For data, I will provide you in class. If you are not in my class but you'd like to have the data, please drop me an email.
 
@@ -31,15 +33,16 @@ I provide some small code files (in `.do` format) so that we can practice in cla
 -   **R** code: with `.qmd` file type
     -   `01_Statistics of Returns.qmd`
     -   `02_Merge with factors and run regressions.qmd`
+    -   `03_Size and Returns.qmd`
 
 ## Data
 
-| Data file  | Description                                                                                     | Details                                                                                                                    |
+| Data file | Description                                                                                     | Details                                                                                                                    |
 |-------------------|---------------------------|---------------------------|
-| Ret.dta    | Stock-month level data on returns                                                               | `permno`: firm id; `date` : date at end-of-month; `yyyymm`: date in yyyymm format; `ret` : monthly returns (in percentage) |
-| Factor.dta | [Demo in class] Fama-French five-factor data, will be downloaded and save in the class          |                                                                                                                            |
-| Size.dta   | Firm size                                                                                       | `me`: firm size, which equals price times shares outstanding                                                               |
-| Beta.dta   | Beta                                                                                            | `beta`: firm beta                                                                                                          |
-| Bm.dta     | Book-to-market ratio                                                                            | `bm`: book-to-market ratio                                                                                                 |
-| Mom.dta    | [Demo in class] Return momentum. We will learn how to calculate this factor from `ret` in class |                                                                                                                            |
-| Ivol.dta   | Idiosyncratic volatility                                                                        |                                                                                                                            |
+| Ret.dta   | Stock-month level data on returns                                                               | `permno`: firm id; `date` : date at end-of-month; `yyyymm`: date in yyyymm format; `ret` : monthly returns (in percentage) |
+| Mret.dta  | Fama-French three-factor data                                                                   | Can be linked to `Ret` by `yyyymm` column                                                                                  |
+| Size.dta  | Firm size                                                                                       | `me`: firm size, which equals price times shares outstanding                                                               |
+| Beta.dta  | Beta                                                                                            | `beta`: firm beta                                                                                                          |
+| Bm.dta    | Book-to-market ratio                                                                            | `bm`: book-to-market ratio                                                                                                 |
+| Mom.dta   | [Demo in class] Return momentum. We will learn how to calculate this factor from `ret` in class |                                                                                                                            |
+| Ivol.dta  | Idiosyncratic volatility                                                                        |                                                                                                                            |
