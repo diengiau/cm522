@@ -46,6 +46,13 @@ Data = Data %>%
   mutate(size = ifelse(me>0, log(me), NA))
 ```
 
+Filter only since 1990 until now:
+
+```{r}
+Data = Data %>% 
+  filter(year(date)>=1990)
+```
+
 Check statistics of the data:
 
 ```{r}
@@ -77,8 +84,7 @@ Data2 = Data %>%
   arrange(permno, yyyymm) %>% 
   mutate(size_l1 = lag(size),
          beta_l1 = lag(beta)) %>% 
-  ungroup() %>% 
-  na.omit()
+  ungroup()
 ```
 
 Then, re-run the model with the lagged variables:
