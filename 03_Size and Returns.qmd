@@ -157,4 +157,6 @@ Data2 %>%
 
 ## Exercise
 
-We have another data is B/M ratio (which is book-to-market ratio) in the file `Bm.dta` in the `data` folder. Please import that data to our session and test if `bm` variable can predict the stock returns. Note that we need to transform that variable into its log form such as `log_bm = log(bm)`.
+We have another data is B/M ratio (which is book-to-market ratio) in the file `Bm.dta` in the `data` folder. Please import that data to our session and test if `bm` variable can predict the stock returns.
+
+Note that we also can transform that variable into its log form such as `log_bm = log(bm)`. Check again if `log_bm` can predict the returns.

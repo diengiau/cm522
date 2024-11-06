@@ -29,7 +29,7 @@ Mret = read_dta("data/Mret.dta")
 
 ## Step 3. Merge data
 
-To merge two data, we need to find the matching column that can link two data together. In our case, which columns can be used to merge two data?
+To merge two data, we need to **find the matching column** that can link two data together. In our case, which columns can be used to merge two data?
 
 -   `permno`
 
@@ -48,14 +48,31 @@ Then, to merge two data, we need to think how to link two data. In general, we h
 -   full_join
 
 ```{r}
-# Data = JOIN_FUNCTION(Ret, Mret, by=("MATCHING_COLUMN"))
+# Data = JOIN_FUNCTION(Ret, Mret, by=c("MATCHING_COLUMN"))
+```
+
+Write and run the merge codes for two cases, and tell me how many observations we have in the final `Data` file. Any difference between then?
+
+-   Inner join: 4,830,754 obs
+
+-   Left join: 4,834,507 obs
+
+```{r}
+Data = inner_join(Ret, Mret, by=c("yyyymm"))
+```
+
+Create the new column `ret_rf` in the `Data` file, equals to `ret - rf` .
+
+```{r}
+# use mutate to make new column in data
+Data = Data %>% mutate(ret_rf = ret - rf)
 ```
 
 ## Step 4. Run the regression to get the beta:
 
-To run regression in R, we often use the basic function like `lm` . Later, we can use a more sophisticated function like `fixest::feols` .
+To run regression in R, we often use the basic function like `lm` (linear model). Later, we can use a more sophisticated function like `fixest::feols` .
 
-Normally, to run beta regression, we only need data for one firm, which need to filter the data for one firm from `Ret` which includes every firm.
+Normally, to run beta regression, we only need data for one firm, which need to filter the data for one firm from `Data` table which includes every firm.
 
 ```{r}
 OneFirm = Data %>% 
@@ -66,7 +83,7 @@ head(OneFirm)
 **Run regression with `lm`**
 
 ```{r}
-lm(formula = ret ~ mkt_rf, data = OneFirm)
+lm(formula = ret_rf ~ mkt_rf, data = OneFirm)
 ```
 
 Again, we can save the regression output to one R object to re-use later:
@@ -87,25 +104,36 @@ This is what we learn from slide, and you can read two columns `Estimate` and `P
 **Run regression with `feols`**
 
 ```{r}
-m2 = feols(fml = ret ~ mkt_rf, data = OneFirm)
+m2 = feols(fml = ret_rf ~ mkt_rf, data = OneFirm)
 m2
 ```
 
-**Practice**
+**Practice exercise**
 
-> Can you run regression again, but now the formula will change a bit. In addition to market return, we add `smb` and `hml` to the formula?
+> Can you run regression again, but for the firm with `permno` equals to **10145**.
+>
+> And the formula will change a bit. In addition to market return, we add `smb` and `hml` to the formula?
+
+```{r}
+# Write your code here
+SecondFirm = Data %>% 
+  filter(permno == 10145)
+
+n1 = feols(fml = ret_rf ~ mkt_rf + smb + hml, data = SecondFirm)
+n1
+```
 
 ## Step 5. Work with the regression object with `broom`
 
 Sometimes, we want to clean the regression object or want to calculate something else, such as residuals from the regressions. In such cases, it is useful to use `broom` package with three useful functions:
 
-1.  `tidy`: get the coefficients in clean dataframe format
+1.  `tidy`: get the coefficients in a clean dataframe format
 
 ```{r}
 tidy(m1)
 ```
 
-2.  `glance`: to get other information from the regression such as R2 or the number of observations
+2.  `glance`: to get other important information from the regression such as R2 or the number of observations in the regression.
 
 ```{r}
 glance(m1)
