@@ -34,11 +34,12 @@ I provide some small code files (in `.do` format) so that we can practice in cla
     -   `01_Statistics of Returns.qmd`
     -   `02_Merge with factors and run regressions.qmd`
     -   `03_Size and Returns.qmd`
+    -   `04_Fama-French regression and alphas.qmd`
 
 ## Data
 
 | Data file | Description                                                                                     | Details                                                                                                                    |
-|-----------|-------------------------------------------------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------|
+|--------------|-------------------------|---------------------------------|
 | Ret.dta   | Stock-month level data on returns                                                               | `permno`: firm id; `date` : date at end-of-month; `yyyymm`: date in yyyymm format; `ret` : monthly returns (in percentage) |
 | Mret.dta  | Fama-French three-factor data                                                                   | Can be linked to `Ret` by `yyyymm` column                                                                                  |
 | Size.dta  | Firm size                                                                                       | `me`: firm size, which equals price times shares outstanding                                                               |
