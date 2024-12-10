@@ -1,0 +1,179 @@
+---
+title: "04 Fama-French regression and alphas"
+author: "Richard Bui"
+format: html
+editor: visual
+---
+
+## Step 1. Load libraries
+
+```{r}
+# before loading, you need to install each package with install.packages("NAME_OF_PACKAGE")
+library(tidyverse) # for MacOS: library(dplyr)
+library(haven)
+library(skimr)
+
+```
+
+## Step 2. Re-create the portfolio returns as Lecture 3
+
+Load data on returns and firm factors:
+
+```{r}
+Ret = read_dta(file = "data/Ret.dta")
+Size = read_dta(file = "data/Size.dta")
+Beta = read_dta(file = "data/Beta.dta")
+```
+
+Merge data:
+
+```{r}
+Data = Ret %>% 
+  inner_join(Size, by=c("permno", "yyyymm")) %>% 
+  inner_join(Beta, by=c("permno", "yyyymm"))
+
+Data = Data %>% 
+  mutate(size = ifelse(me>0, log(me), NA))
+
+Data = Data %>% 
+  filter(year(date)>=1990)
+
+Data2 = Data %>% 
+  group_by(permno) %>% 
+  arrange(permno, yyyymm) %>% 
+  mutate(size_l1 = lag(size),
+         beta_l1 = lag(beta)) %>% 
+  ungroup()
+```
+
+Equal weighted returns:
+
+```{r}
+PortfolioReturn = Data2 %>% 
+  mutate(g_size = ntile(size_l1, n=10), 
+         .by = date) %>%
+  summarize(p_ret = mean(ret, na.rm=TRUE), 
+            .by = c(date, g_size)) 
+```
+
+Then, we have the time series of returns for 10 portfolios:
+
+```{r}
+PortfolioReturn
+```
+
+## Step 3. Load Fama-French 3-factor returns
+
+```{r}
+Ff3 = read_csv("data/F-F_Research_Data_Factors.CSV")
+```
+
+We observe that Ff3 data has a numeric column `yyyymm` but PortfolioReturn data has a date-type `date` column. We can't merge using these two columns since they are not in the same data type.
+
+Thus, we need to create a `yyyymm` column in the `PortfolioReturn` data (note that we also can do oppositely, create a `date` column in Ff3, which I leave to you as self homework):
+
+```{r}
+PortfolioReturn %>% 
+  # create yyyymm
+  mutate(yyyymm = as.character(date)) %>% 
+  mutate(yyyymm = str_sub(yyyymm, 1, 7)) %>% 
+  mutate(yyyymm = str_replace(yyyymm, "-", "")) %>% 
+  mutate(yyyymm = as.numeric(yyyymm)) 
+```
+
+I will analyze step by step so that you can understand in class.
+
+```{r}
+PortfolioReturn = PortfolioReturn %>% 
+  # create yyyymm
+  mutate(yyyymm = as.character(date)) %>% 
+  mutate(yyyymm = str_sub(yyyymm, 1, 7)) %>% 
+  mutate(yyyymm = str_replace(yyyymm, "-", "")) %>% 
+  mutate(yyyymm = as.numeric(yyyymm)) %>% 
+  # merge with Ff3
+  inner_join(Ff3, by="yyyymm")
+```
+
+Next, we need to take portfolio return to minus risk-free rates to get excess returns (after risk free rates):
+
+```{r}
+PortfolioReturn = PortfolioReturn %>% 
+  mutate(p_eret = p_ret - rf)
+```
+
+## Step 4: Run regression by each portfolio to get alphas
+
+```{r}
+PortfolioReturn %>% count(g_size)
+```
+
+We have 10 portfolios based on firm size.
+
+We need to run each regression by each group. So totally, we will run 10 regressions.
+
+**Portfolio 1: Smallest firms**
+
+```{r}
+PortfolioReturn %>% 
+  filter(g_size==1) %>% 
+  lm(p_eret ~ mkt_rf + smb + hml, data=.) %>% 
+  summary()
+```
+
+In this regression, the smallest size portfolio has the alpha of 1.10 and it's significant.
+
+**Portfolio 10: Biggest firms**
+
+```{r}
+PortfolioReturn %>% 
+  filter(g_size==10) %>% 
+  lm(p_eret ~ mkt_rf + smb + hml, data=.) %>% 
+  summary()
+```
+
+The biggest firms have the alphas of -0.02 and it is not significant.
+
+**How about the Long-Short portfolio?**
+
+```{r}
+PortfolioReturn %>% 
+  filter(g_size==10) %>% # Largest firms
+  rename(p10_ret = p_ret)
+
+PortfolioReturn %>% 
+  filter(g_size==1) %>% # Smallest firms
+  select(date, p1_ret = p_ret)
+
+```
+
+Merge above two data:
+
+```{r}
+LongShort = inner_join(
+  PortfolioReturn %>% 
+  filter(g_size==10) %>% # Largest firms
+  rename(p10_ret = p_ret),
+
+  PortfolioReturn %>% 
+  filter(g_size==1) %>% # Smallest firms
+  select(date, p1_ret = p_ret),
+
+  by="date"
+)
+```
+
+Then, we calculate the long-short return by take `p1_ret` minus `p10_ret` :
+
+```{r}
+LongShort = LongShort %>% 
+  mutate(ls_ret = p1_ret - p10_ret)
+```
+
+Run regression to get alphas:
+
+```{r}
+lm(ls_ret ~ mkt_rf + smb + hml, data=LongShort) %>% 
+  summary()
+```
+
+Long-short alpha is 1.12586 and it's very significant, confirming the size premium in the stock market AFTER adjusted by the Fama-French three factor model (Fama & French, 1992, 1996).
